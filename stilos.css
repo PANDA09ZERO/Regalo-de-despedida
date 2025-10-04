@@ -1,0 +1,259 @@
+/* ===== GENERAL ===== */
+body {
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(135deg, #ffe6f0, #fff0f5);
+  color: #333;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  text-align: center;
+}
+
+/* ===== CONTENEDOR PRINCIPAL ===== */
+.wrap {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 25px;
+  box-shadow: 0 12px 30px rgba(252, 107, 162, 0.25);
+  padding: 30px 25px;
+  max-width: 600px;
+  width: 90%;
+  z-index: 20;
+}
+
+/* ===== TITULOS ===== */
+h1 {
+  font-size: 2.2rem;
+  color: #ff4d88;
+  text-shadow: 2px 2px 8px rgba(255, 77, 136, 0.2);
+  margin-bottom: 15px;
+  font-weight: 600;
+  animation: aparecer 0.8s ease forwards;
+}
+
+h2 {
+  font-size: 1.3rem;
+  margin-top: 20px;
+  color: #ff4d88;
+  font-weight: 500;
+}
+
+.meta {
+  font-size: 0.95rem;
+  color: #555;
+  margin-top: 5px;
+}
+.hint{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  width: 100% ;
+}
+
+/* ===== BOTONES ===== */
+button {
+  padding: 12px 24px;
+  margin: 8px;
+  background: linear-gradient(135deg, #ff85a2, #ff4d88);
+  color: white;
+  border: none;
+  border-radius: 40px; 
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  text-transform: capitalize;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+  min-width: 140px;
+}
+
+button:hover {
+  background: linear-gradient(135deg, #ff4d88, #ff2975);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.2);
+}
+
+button:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+button a {
+  color: inherit;
+  text-decoration: none;
+  display: block;
+}
+
+/* ===== CANVAS DEL JUEGO ===== */
+#game {
+  background: #fff0f5;
+  border: 2px solid #ff4d88;
+  margin: 10px auto;
+  display: block;
+  width: 100%;
+  max-width: 500px;
+  aspect-ratio: 1/1;
+  border-radius: 20px;
+}
+
+/* ===== CONTROLES PRINCIPALES ===== */
+.controls {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.controls button.primary {
+  background: #ff4d88;
+}
+
+.controls button.primary:hover {
+  background: #f93e7d;
+}
+
+/* ===== CONTROLES TÁCTILES ===== */
+.touch-controls {
+  display: none;
+  margin-top: 15px;
+}
+
+.touch-controls .middle-row {
+  display: flex;
+  justify-content: center;
+  margin: 5px 0;
+  gap: 10px;
+}
+
+.touch-controls .ctrl-btn {
+  background: linear-gradient(135deg, #ff85a2, #ff4d88);
+  color: white;
+  border: none;
+  font-size: 1.6rem;
+  padding: 15px;
+  border-radius: 16px;
+  flex: 1;
+  transition: 0.2s;
+}
+
+.touch-controls .ctrl-btn:active {
+  background: linear-gradient(135deg, #ff4d88, #ff2975);
+}
+
+/* ===== RESPONSIVE ===== */
+
+/* Mostrar controles táctiles en móviles en horizontal */
+@media (max-width: 768px) and (orientation: landscape) {
+  .touch-controls {
+    display: block;
+  }
+}
+
+/* Si está en vertical, mostrar aviso y ocultar el juego */
+@media screen and (orientation: portrait) {
+  body::before {
+    content: "📱 Gira tu celular de lado (horizontal) para jugar mejor 😉";
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 77, 136, 0.9);
+    color: white;
+    padding: 20px;
+    border-radius: 20px;
+    font-size: 1.1rem;
+    text-align: center;
+    z-index: 9999;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+  }
+
+  .wrap {
+    display: none;
+  }
+}
+
+/* ===== ANIMACIONES ===== */
+@keyframes aparecer {
+  0%   { transform: scale(0.8) translateY(15px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+/* ===== MODAL GAME OVER ===== */
+.gameover-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 240, 245, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  animation: fadeIn 0.4s ease;
+}
+
+.gameover-box {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 25px;
+  box-shadow: 0 12px 30px rgba(255, 77, 136, 0.25);
+  padding: 30px 40px;
+  text-align: center;
+  animation: popIn 0.5s ease forwards;
+}
+
+.gameover-box h2 {
+  color: #ff4d88;
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.gameover-box p {
+  color: #444;
+  font-size: 1.2rem;
+  margin-bottom: 25px;
+}
+
+.gameover-box button {
+  padding: 12px 25px;
+  background: linear-gradient(135deg, #ff85a2, #ff4d88);
+  color: white;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+}
+
+.gameover-box button:hover {
+  background: linear-gradient(135deg, #ff4d88, #ff2975);
+  transform: scale(1.08);
+}
+
+/* Animaciones suaves */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.fadeOut {
+  animation: fadeOut 0.4s ease forwards;
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; transform: scale(0.9); }
+}

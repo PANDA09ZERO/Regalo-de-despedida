@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" 
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, orientation=landscape"/>
+  <title>Tetris - Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    /* ===== GENERAL ===== */
+    body {
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #ffe6f0, #fff0f5);
+      color: #333;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* ===== CONTENEDOR PRINCIPAL ===== */
+    .wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      align-items: flex-start;
+      justify-content: center;
+      width: 900px;
+      max-width: 95%;
+      padding: 30px 25px;
+      border-radius: 25px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 12px 35px rgba(252, 107, 162, 0.25);
+      animation: fadeIn 0.8s ease-in-out;
+    }
+
+    /* ===== TABLERO ===== */
+    canvas {
+      background: #fff0f5;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(252, 107, 162, 0.25);
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* ===== PANEL LATERAL ===== */
+    .panel {
+      width: 220px;
+      max-width: 90vw;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #ff4d88;
+      text-shadow: 2px 2px 8px rgba(255, 77, 136, 0.2);
+      margin: 0 0 10px;
+      font-weight: 600;
+    }
+
+    .score {
+      font-size: 1rem;
+      margin: 8px 0;
+      font-weight: 500;
+      color: #555;
+    }
+
+    .muted {
+      opacity: 0.8;
+      font-size: 0.9rem;
+      color: #777;
+    }
+
+    /* ===== BOTONES ===== */
+    button {
+      padding: 12px 24px;
+      margin: 8px;
+      background: linear-gradient(135deg, #ff85a2, #ff4d88);
+      color: white;
+      border: none;
+      border-radius: 40px; 
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 500;
+      text-transform: capitalize;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+      min-width: 160px;
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, #ff4d88, #ff2975);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.2);
+    }
+
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    /* ===== PRÓXIMA PIEZA ===== */
+    .next {
+      display: grid;
+      grid-template-columns: repeat(4, 35px);
+      grid-auto-rows: 35px;
+      gap: 2px;
+      padding: 8px;
+      background: #ffe6f0;
+      border-radius: 12px;
+      box-shadow: inset 0 0 8px rgba(255, 77, 136, 0.2);
+    }
+
+    .cell {
+      width: 100%;
+      height: 100%;
+      border-radius: 6px;
+    }
+
+    /* ===== CONTROLES TÁCTILES ===== */
+    .touch-controls {
+      display: none;
+      margin-top: 20px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .touch-row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 8px 0;
+    }
+
+    .ctrl-btn {
+      width: 65px;
+      height: 65px;
+      border-radius: 50%;
+      font-size: 1.5rem;
+      background: linear-gradient(135deg, #ff85a2, #ff4d88);
+      color: #fff;
+      border: none;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .ctrl-btn:active {
+      transform: scale(0.9);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .wrap {
+        flex-direction: column;
+        align-items: center;
+      }
+      canvas {
+        width: 100% !important;
+        height: auto !important;
+      }
+      .touch-controls {
+        display: block;
+      }
+    }
+
+    /* ===== ANIMACIONES ===== */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- TABLERO DE JUEGO -->
+    <canvas id="board" width="300" height="600"></canvas>
+
+    <!-- PANEL LATERAL -->
+    <div class="panel">
+      <h1>Tetris</h1>
+      <div class="score">Puntos: <span id="score">0</span></div>
+      <div class="score muted">Nivel: <span id="level">1</span></div>
+
+      <div style="margin:10px 0">
+        <button id="btnStart">Iniciar / Reiniciar</button><br>
+        <button id="btnPause">Pausar (P)</button>
+      </div>
+
+      <div style="margin-top:12px">
+        <label class="muted">Velocidad:</label><br>
+        <select id="speedSelect">
+          <option value="1000">Normal</option>
+          <option value="700">Rápido</option>
+          <option value="400">Muy rápido</option>
+        </select>
+      </div>
+
+      <div style="margin-top:12px">
+        <div class="muted">Próxima pieza</div>
+        <div id="next" class="next"></div>
+      </div>
+    </div>
+
+    <!-- CONTROLES TÁCTILES SOLO EN CELULAR -->
+    <div class="touch-controls">
+      <div class="touch-row">
+        <button class="ctrl-btn" data-dir="up">⏫</button>
+      </div>
+      <div class="touch-row">
+        <button class="ctrl-btn" data-dir="left">⬅️</button>
+        <button class="ctrl-btn" data-dir="down">⬇️</button>
+        <button class="ctrl-btn" data-dir="right">➡️</button>
+      </div>
+      <div class="touch-row">
+        <button class="ctrl-btn" data-dir="pause">⏸️</button>
+      </div>
+    </div>
+  </div>
+<script>
+(() => {
+  // ========================
+  // VARIABLES DEL JUEGO
+  // ========================
+  const canvas = document.getElementById('board');
+  const ctx = canvas.getContext('2d');
+  const cols = 10, rows = 20;
+  let cell = Math.max(20, Math.min(window.innerWidth/25, 35)); // responsive tamaño celda
+  canvas.width = cols * cell;
+  canvas.height = rows * cell;
+
+  const scoreEl = document.getElementById('score');
+  const levelEl = document.getElementById('level');
+  const nextEl = document.getElementById('next');
+  const btnStart = document.getElementById('btnStart');
+  const btnPause = document.getElementById('btnPause');
+  const speedSelect = document.getElementById('speedSelect');
+
+  // Definición de piezas Tetris
+  const PIECES = [
+    {matrix: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]], color:'#38bdf8'}, // I
+    {matrix: [[2,0,0],[2,2,2],[0,0,0]], color:'#60a5fa'}, // J
+    {matrix: [[0,0,3],[3,3,3],[0,0,0]], color:'#fb923c'}, // L
+    {matrix: [[4,4],[4,4]], color:'#facc15'}, // O
+    {matrix: [[0,5,5],[5,5,0],[0,0,0]], color:'#34d399'}, // S
+    {matrix: [[0,6,0],[6,6,6],[0,0,0]], color:'#a78bfa'}, // T
+    {matrix: [[7,7,0],[0,7,7],[0,0,0]], color:'#f87171'} // Z
+  ];
+
+  function createMatrix(w,h){
+    const m = [];
+    while(h--) m.push(new Array(w).fill(0));
+    return m;
+  }
+
+  function rotate(matrix, dir){
+    for (let y=0;y<matrix.length;y++){
+      for(let x=0;x<y;x++){
+        [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
+      }
+    }
+    if(dir>0) matrix.forEach(row=>row.reverse()); else matrix.reverse();
+  }
+
+  const arena = createMatrix(cols, rows);
+  const player = {pos:{x:0,y:0}, matrix:null, color:null};
+
+  let nextPiece = null;
+  let dropCounter = 0;
+  let dropInterval = 1000; // velocidad inicial
+  let lastTime = 0;
+  let score = 0;
+  let level = 1;
+  let lines = 0;
+  let running = false;
+  let paused = false;
+
+  // ========================
+  // FUNCIONES PRINCIPALES
+  // ========================
+  function collide(arena, player){
+    const m = player.matrix;
+    for(let y=0;y<m.length;y++){
+      for(let x=0;x<m[y].length;x++){
+        if(m[y][x]!==0){
+          const ay = y + player.pos.y;
+          const ax = x + player.pos.x;
+          if(ay<0 || ay>=arena.length || ax<0 || ax>=arena[0].length || arena[ay][ax]!==0) return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  function merge(arena, player){
+    const m = player.matrix;
+    for(let y=0;y<m.length;y++){
+      for(let x=0;x<m[y].length;x++){
+        if(m[y][x]!==0){
+          arena[y+player.pos.y][x+player.pos.x] = m[y][x];
+        }
+      }
+    }
+  }
+
+  function sweep(){
+    let rowCount=0;
+    outer: for(let y=arena.length-1;y>=0;y--){
+      for(let x=0;x<arena[y].length;x++){
+        if(arena[y][x]===0) continue outer;
+      }
+      const row = arena.splice(y,1)[0].fill(0);
+      arena.unshift(row);
+      y++;
+      rowCount++;
+    }
+    if(rowCount>0){
+      lines += rowCount;
+      score += (rowCount===1?40:rowCount===2?100:rowCount===3?300:1200) * level;
+      level = Math.floor(lines/10)+1;
+      dropInterval = Math.max(100, dropInterval - 50);
+      updateScore();
+    }
+  }
+
+  function updateScore(){
+    scoreEl.textContent = score;
+    levelEl.textContent = level;
+  }
+
+  function drawCell(x,y,val){
+    if(val===0) return;
+    const colors = {1:'#38bdf8',2:'#60a5fa',3:'#fb923c',4:'#facc15',5:'#34d399',6:'#a78bfa',7:'#f87171'};
+    ctx.fillStyle = colors[val] || '#999';
+    ctx.fillRect(x*cell+1,y*cell+1,cell-2,cell-2);
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = '#021428';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    for(let y=0;y<arena.length;y++){
+      for(let x=0;x<arena[y].length;x++){
+        drawCell(x,y,arena[y][x]);
+      }
+    }
+    const m = player.matrix;
+    for(let y=0;y<m.length;y++){
+      for(let x=0;x<m[y].length;x++){
+        if(m[y][x]!==0){
+          drawCell(x+player.pos.x,y+player.pos.y,m[y][x]);
+        }
+      }
+    }
+  }
+
+  function playerDrop(){
+    player.pos.y++;
+    if(collide(arena, player)){
+      player.pos.y--;
+      merge(arena, player);
+      playerReset();
+      sweep();
+    }
+    dropCounter = 0;
+  }
+
+  function playerMove(dir){
+    player.pos.x += dir;
+    if(collide(arena, player)) player.pos.x -= dir;
+  }
+
+  function playerRotate(dir){
+    const posX = player.pos.x;
+    rotate(player.matrix, dir);
+    let offset = 1;
+    while(collide(arena, player)){
+      player.pos.x += offset;
+      offset = -(offset + (offset>0?1:-1));
+      if(offset > player.matrix[0].length){
+        rotate(player.matrix, -dir);
+        player.pos.x = posX;
+        return;
+      }
+    }
+  }
+
+  function randomPiece(){
+    const idx = Math.floor(Math.random()*PIECES.length);
+    const p = PIECES[idx];
+    const m = p.matrix.map(r=>r.slice());
+    return {matrix:m, color:p.color, id: idx+1};
+  }
+
+  function playerReset(){
+    if(!nextPiece) nextPiece = randomPiece();
+    player.matrix = nextPiece.matrix.map(r=>r.slice());
+    player.color = nextPiece.color;
+    player.id = nextPiece.id;
+    nextPiece = randomPiece();
+    player.pos.y = 0;
+    player.pos.x = Math.floor((cols - player.matrix[0].length)/2);
+    if(collide(arena, player)){
+      arena.forEach(row=>row.fill(0));
+      score = 0; lines = 0; level = 1; dropInterval = 1000;
+      running = false;
+      updateScore();
+
+      // 🎀 SweetAlert2 kawaii personalizado 🎀
+      Swal.fire({
+        title: 'X Game Over X',
+        html: `
+          <p style="font-size:1.1rem; color:#b83280;">
+           No se si sea cobarde decirlo aquí <br>
+            <strong>pero te quiero</strong> 💖<br><br>
+            Entiendo si no quieres nada conmigo,<br>
+            igual voy a tenerte presente siempre pucca <3 🌸
+          </p>
+        `,
+        confirmButtonText: '🌸 Volver a jugar 🌸',
+        background: '#fff0fa',
+        color: '#b83280',
+        confirmButtonColor: '#f783ac',
+        backdrop: `
+          rgba(255,182,193,0.4)
+          url("https://media.tenor.com/3bTxZ4HdrysAAAAi/cute-blush.gif")
+          center top
+          no-repeat
+        `,
+        customClass: {
+          popup: 'swal-kawaii'
+        }
+      }).then(() => {
+        // Reinicia el juego al cerrar el mensaje
+        nextPiece = randomPiece();
+        playerReset();
+        running = true;
+        requestAnimationFrame(update);
+      });
+    }
+
+    renderNext();
+  }
+
+  function renderNext(){
+    nextEl.innerHTML = '';
+    const size = 4;
+    for(let i=0;i<size*size;i++){
+      const d = document.createElement('div'); d.className='cell';
+      nextEl.appendChild(d);
+    }
+    if(!nextPiece) return;
+    const m = nextPiece.matrix;
+    const colors = {1:'#38bdf8',2:'#60a5fa',3:'#fb923c',4:'#facc15',5:'#34d399',6:'#a78bfa',7:'#f87171'};
+    const offsetY = Math.floor((size - m.length)/2);
+    const offsetX = Math.floor((size - m[0].length)/2);
+    for(let y=0;y<m.length;y++){
+      for(let x=0;x<m[y].length;x++){
+        if(m[y][x]!==0){
+          const idx = (y+offsetY)*size + (x+offsetX);
+          const cellDiv = nextEl.children[idx];
+          cellDiv.style.background = colors[m[y][x]];
+        }
+      }
+    }
+  }
+
+  function update(time=0){
+    if(!running || paused){ lastTime = time; requestAnimationFrame(update); return; }
+    const deltaTime = time - lastTime;
+    lastTime = time;
+    dropCounter += deltaTime;
+    if(dropCounter > dropInterval) playerDrop();
+    draw();
+    requestAnimationFrame(update);
+  }
+
+  // ========================
+  // EVENTOS DE CONTROL
+  // ========================
+  document.addEventListener('keydown', e => {
+    if(!running && e.key.toLowerCase() === 'p') return;
+    switch(e.key){
+      case 'ArrowLeft': playerMove(-1); break;
+      case 'ArrowRight': playerMove(1); break;
+      case 'ArrowDown': playerDrop(); break;
+      case 'ArrowUp': playerRotate(1); break;
+      case ' ': while(!collide(arena, player)) player.pos.y++; player.pos.y--; merge(arena, player); playerReset(); sweep(); dropCounter = 0; break;
+      case 'p':
+      case 'P': paused = !paused; btnPause.textContent = paused ? 'Reanudar' : 'Pausar (P)'; break;
+    }
+  });
+
+  btnStart.addEventListener('click', ()=>{
+    for(let y=0;y<arena.length;y++) arena[y].fill(0);
+    score = 0; lines = 0; level = 1; dropInterval = parseInt(speedSelect.value);
+    running = true; paused = false; btnPause.textContent='Pausar (P)';
+    nextPiece = randomPiece(); playerReset(); updateScore(); lastTime = 0; requestAnimationFrame(update);
+  });
+
+  btnPause.addEventListener('click', ()=>{ paused = !paused; btnPause.textContent = paused ? 'Reanudar' : 'Pausar (P)'; });
+  // 🎮 Controles táctiles
+  document.querySelectorAll('.ctrl-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const dir = btn.dataset.dir;
+      if(dir==="left") playerMove(-1);
+      if(dir==="right") playerMove(1);
+      if(dir==="down") playerDrop();
+      if(dir==="up") playerRotate(1);
+      if(dir==="pause"){ paused=!paused; btnPause.textContent = paused ? "Reanudar" : "Pausar (P)"; }
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta 
+    name="viewport" 
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" 
+  />
+  <title>Culebrita</title>
+  <link rel="stylesheet" href="stilos.css">
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>La Culebrita</h1>
+        <div class="meta">Usa flechas o W-A-S-D || ¡come el pastelito!</div>
+      </div>
+      <div class="meta">Puntuación: <span id="score">0</span></div>
+    </header>
+
+    <canvas id="game" width="400" height="400"></canvas>
+
+    <div class="controls">
+      <div class="left">
+        <button id="startBtn" class="primary">Iniciar / Reanudar</button>
+        <button id="pauseBtn">Pausa</button>
+        <button id="resetBtn">Reiniciar</button>
+      </div>
+      <div class="right info">
+        <div class="hint">
+          Velocidad: 
+          <span id="speedDisplay">8</span> 
+          | Tamaño rejilla: 
+          <span id="gridDisplay">20</span>
+          <br>
+          <div class="difficulty-wrap">
+            <label for="difficulty">Dificultad:</label>
+            <select id="difficulty">
+              <option value="5">Fácil</option>
+              <option value="8" selected>Normal</option>
+              <option value="15">Difícil</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTROLES TÁCTILES SOLO EN CELULAR -->
+    <div class="touch-controls">
+      <div class="middle-row">
+        <button class="ctrl-btn" data-dir="up">⬆️</button>
+      </div>
+      <div class="middle-row">
+        <button class="ctrl-btn" data-dir="left">⬅️</button>
+        <button class="ctrl-btn" data-dir="down">⬇️</button>
+        <button class="ctrl-btn" data-dir="right">➡️</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rompecabezas || Para fer</title>
+</head>
+<body>
+  <div class="board"></div>
+
+
+  <!-- Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+let size = 3; // rompecabezas 3x3
+let board = document.querySelector('.board');
+let shuffling = false; // para saber si estamos barajando
+
+// Matriz inicial (resuelto)
+let matriz = [
+  ['1','2','3'],
+  ['4','5','6'],
+  ['7','8','']
+];
+
+// Dibuja las fichas según la matriz
+function drawTokens() {
+  board.innerHTML = "";
+  for (let i = 0; i < size; i++) {
+    for (let j = 0; j < size; j++) {
+      let value = matriz[i][j];
+      let div = document.createElement("div");
+      div.classList.add("tile");
+
+      if (value === "") {
+        div.classList.add("empty");
+      } else {
+        let num = parseInt(value) - 1;
+        let row = Math.floor(num / size);
+        let col = num % size;
+
+        // Posición exacta en el fondo
+        div.style.backgroundPosition = `${-col * 100}% ${-row * 100}%`;
+
+        div.addEventListener("click", () => moveToken(value));
+      }
+
+      board.appendChild(div);
+    }
+  }
+}
+
+// Buscar posición de un valor en la matriz
+function findPosition(value) {
+  for (let i = 0; i < size; i++) {
+    for (let j = 0; j < size; j++) {
+      if (matriz[i][j] === value) return { row: i, col: j };
+    }
+  }
+  return null;
+}
+
+// Mover ficha si está junto al espacio vacío
+function moveToken(value) {
+  let pos = findPosition(value);
+  let empty = findPosition("");
+
+  if (
+    (Math.abs(pos.row - empty.row) === 1 && pos.col === empty.col) ||
+    (Math.abs(pos.col - empty.col) === 1 && pos.row === empty.row)
+  ) {
+    matriz[empty.row][empty.col] = value;
+    matriz[pos.row][pos.col] = "";
+    drawTokens();
+
+    // Solo celebrar si NO estamos mezclando
+    if (!shuffling && isSolved()) {
+      setTimeout(celebrate, 300);
+    }
+  }
+}
+
+// Verifica si está resuelto
+function isSolved() {
+  let expected = 1;
+  for (let i = 0; i < size; i++) {
+    for (let j = 0; j < size; j++) {
+      if (i === size-1 && j === size-1) return matriz[i][j] === "";
+      if (matriz[i][j] !== expected.toString()) return false;
+      expected++;
+    }
+  }
+  return true;
+}
+
+// Animación y confeti al ganar
+function celebrate() {
+  // Crear y mostrar la imagen completa
+  let img = document.createElement("div");
+  img.classList.add("full-image");
+  img.style.zIndex = "9998"; // debajo del SweetAlert
+  document.body.appendChild(img);
+
+  // Quitar la imagen después de 1.5s con fade out
+  setTimeout(() => {
+    img.style.transition = "opacity 0.8s ease";
+    img.style.opacity = "0";
+    setTimeout(() => img.remove(), 800);
+  }, 1500);
+
+  // Confeti kawaii (rosado, lila y blanco)
+  confetti({
+    particleCount: 200,
+    spread: 120,
+    origin: { y: 0.6 },
+    colors: ['#ffb6c1', '#ffc0cb', '#dda0dd', '#ffffff']
+  });
+
+  // Primer mensaje kawaii
+  setTimeout(() => {
+    Swal.fire({
+      title: '🎀 ¡Eso nena! 🎀',
+      text: 'Terminaste el rompecabezas ✨',
+      icon: 'success',
+      confirmButtonText: '🌸 Jugar otra vez 🌸',
+      background: '#fff0f6',
+      color: '#d63384',
+      confirmButtonColor: '#ff85c0',
+      backdrop: `
+        rgba(255,192,203,0.3)
+        url("https://media.tenor.com/yheo1GGu3FwAAAAi/cute.gif")
+        center top
+        no-repeat
+      `,
+      customClass: {
+        popup: 'swal-kawaii'
+      }
+    }).then(() => {
+      // Segundo mensajito kawaii
+      Swal.fire({
+        title: '✨ Estos juegos son especialemente para ti <3 ✨',
+        text: 'Para la próxima te traeré más juegos 💖',
+        icon: 'info',
+        confirmButtonText: 'touch me baby 💕',
+        background: '#fff0fa',
+        color: '#b83280',
+        confirmButtonColor: '#f783ac',
+        backdrop: `
+          rgba(255,182,193,0.4)
+          url("https://media.tenor.com/3bTxZ4HdrysAAAAi/cute-blush.gif")
+          center top
+          no-repeat
+        `,
+        customClass: {
+          popup: 'swal-kawaii'
+        }
+      }).then(() => {
+        shuffle(); // Reinicia el puzzle
+      });
+    });
+  }, 800);
+}
+
+
+// Mezclar tablero (movimientos aleatorios válidos)
+function shuffle(times = 50) {
+  shuffling = true; // activamos flag
+  for (let i = 0; i < times; i++) {
+    let empty = findPosition("");
+    let moves = [];
+
+    if (empty.row > 0) moves.push(matriz[empty.row-1][empty.col]);
+    if (empty.row < size-1) moves.push(matriz[empty.row+1][empty.col]);
+    if (empty.col > 0) moves.push(matriz[empty.row][empty.col-1]);
+    if (empty.col < size-1) moves.push(matriz[empty.row][empty.col+1]);
+
+    let move = moves[Math.floor(Math.random() * moves.length)];
+    let pos = findPosition(move);
+
+    matriz[empty.row][empty.col] = move;
+    matriz[pos.row][pos.col] = "";
+  }
+  drawTokens();
+  shuffling = false; // desactivamos flag
+}
+
+// Iniciar
+drawTokens();
+shuffle();
+
+</script>
+<style>
+    
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: sans-serif;
+      background: linear-gradient(135deg, #ffe6f0, #fff0f5);
+    }
+
+    /* Tablero */
+    .board {
+    width: min(90vmin, 450px);
+    height: min(90vmin, 450px);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 2px;
+    }
+
+
+    /* Cada ficha */
+    .tile {
+      width: 100%;
+      height: 100%;
+      background-image: url("img/cinnamoroll.png"); /* usa tu imagen */
+      background-size: 300% 300%; /* porque es 3x3 */
+      border-radius: 4px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .tile:hover {
+      transform: scale(1.05);
+    }
+
+    .empty {
+      background: #e8bdcea7;
+      cursor: default;
+    }
+
+    .full-image {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: min(90vmin, 450px);
+    height: min(90vmin, 450px);
+    background: url("img/cinnamoroll.png");
+    background-size: cover;
+    transform: translate(-50%, -50%) scale(0);
+    animation: pop 1s forwards;
+    z-index: 9999;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    }
+
+
+    @keyframes pop {
+      to {
+        transform: translate(-50%, -50%) scale(1.2);
+      }
+    }
+</style>
+</body>
+</html>
